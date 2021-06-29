@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import TodoItem from './components/TodoItem'
 import AddTodo from './components/AddTodo'
-import { getTodos, addTodo, updateTodo, deleteTodo } from './API'
+import { getTodos, getFilteredTodos, addTodo, updateTodo, deleteTodo } from './API'
 
 const App: React.FC = () => {
   const [todos, setTodos] = useState<ITodo[]>([])
+  const [status, setStatus] = useState(false);
 
   useEffect(() => {
     fetchTodos()
@@ -12,6 +13,12 @@ const App: React.FC = () => {
 
   const fetchTodos = (): void => {
     getTodos()
+    .then(({ data: { todos } }: ITodo[] | any) => setTodos(todos))
+    .catch((err: Error) => console.log(err))
+  }
+
+  const fetchFilteredTodos = (status: boolean): void => {
+    getFilteredTodos(status)
     .then(({ data: { todos } }: ITodo[] | any) => setTodos(todos))
     .catch((err: Error) => console.log(err))
   }
@@ -50,10 +57,21 @@ const App: React.FC = () => {
       .catch((err) => console.log(err))
   }
 
+  const handleStatusChange = (): void => {
+    const newStatus = !status
+    setStatus(newStatus)
+    fetchFilteredTodos(newStatus)
+  }
+
   return (
     <main className='App'>
-      <h1>My Todos</h1>
+      <h1>Todo List</h1>
       <AddTodo saveTodo={handleSaveTodo} />
+      <div>
+        <input type="checkbox" defaultChecked={status} onChange={handleStatusChange}/>
+        <label>  Completed</label>
+      </div>
+    
       {todos.map((todo: ITodo) => (
         <TodoItem
           key={todo._id}
